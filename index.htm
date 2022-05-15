@@ -1,0 +1,349 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+ <!---   <link rel="icon" href="/docs/4.0/assets/img/favicons/favicon.ico">   -->
+
+    <title>BookLnk</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/starter-template/">
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Custom styles for this template -->
+    <link href="starter-template.css" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+  </head>
+
+  <body>
+
+      
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+      <a class="navbar-brand" href="#"><img src="booklnklogo.png" style="width:22px;height:25px;"></a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Configure</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Data Views</a>
+            <div class="dropdown-menu" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="#">HypnoGram</a>
+              <a class="dropdown-item" href="#">HypnoChron</a>
+              <a class="dropdown-item" href="#">Raw Data</a>
+            </div>
+          </li>
+        </ul>
+
+      </div>
+    </nav>
+
+    <main role="main" class="container">
+
+      <div class="starter-template">
+        <h1>BookLnk.com</h1>
+        <p class="lead">Operationalize the books you read! </p>
+      </div>
+      
+
+      <div class="container">
+        <h2>Bill's Library</h2>
+          
+        <br>
+
+        <h4>NOW READING</h4>
+        <div id="reading_now"></div>
+        <hr>
+
+        <h4>TO READ</h4>
+        <div id="to_read"></div>
+        <hr>
+
+        <h4>ALREADY READ</h4>
+        <div id="completed"></div>
+
+        <hr>
+        
+        <h4>ADD A BOOK</h4>
+
+        <h6>By Title/Author:</h6>
+        <input type="text" id="fname" name="fname">
+        &nbsp; &nbsp;
+        <input type="button" id="submitButton" value="Lookup">
+        <br>
+        
+        <h6>By ISBN:</h6>
+        <input type="text" id="tname" name="fname">
+        &nbsp; &nbsp;
+  
+        <input type="button" id="titleSubmitButton" value="Lookup">
+        <br><br>
+      </div>
+
+
+
+      
+
+      <script>
+
+      function handleErrors(response) {
+        if (!response.ok) {
+          throw Error(response.statusText);
+        }
+        return response;
+      }
+
+      function processWorldCatLookup(worldcatLookupString) {
+        fetch(worldcatLookupString, {
+          mode: 'no-cors' // cors by default
+        })
+          .then(response => { response.text(); console.log("WorldCat Data=" + JSON.stringify(response)) })
+          .then(data => { console.log("WorldCat Data=" + data) } );
+      }
+
+
+      function processISBNLookup(isbnString) {
+   //     fetch('https://openlibrary.org/api/books?bibkeys=ISBN:' + isbnString + '&jscmd=data&format=json')
+//          fetch('https://www.googleapis.com/books/v1/volumes?q=neuromancer+inauthor:" + isbnString + "&key=AIzaSyBl-zrGJ1-fZQWYXiILGUv2hz0b8HTYVYU')
+         fetch('https://www.googleapis.com/books/v1/volumes?q=' + isbnString + '&key=AIzaSyBl-zrGJ1-fZQWYXiILGUv2hz0b8HTYVYU')
+.then(response => response.text())
+          .then(data => { 
+ //                         var bookInfoJSON = JSON.parse(data);
+ //                         var totalItems = bookInfoJSON.totalItems;
+ //                         var firstVolume = bookInfoJSON.items[0].volumeInfo;
+//                          console.log("Title=" + firstVolume.title); 
+//                          console.log("Publisher=" + firstVolume.publisher); 
+//                          console.log("Date=" + firstVolume.publishedDate); 
+
+
+  
+ //                         console.log("ProcessISBNLookup Data=" + data); 
+                          newShowBookResults(data)
+                        } );
+      }
+
+      function processTitleLookup(titleString) {
+        fetch('https://openlibrary.org/api/books?bibkeys=title:' + titleString + '&jscmd=data&format=json')
+          .then(response => response.text())
+          .then(data => { console.log("ProcessTitleLookup Data=" + data); showBookResults(data, "title:" + titleString)} );
+      }
+
+      function newShowBookResults(dataBack) {
+
+        var header = document.querySelector("h4");
+        var bookInfoJSON = JSON.parse(dataBack);
+
+        if (bookInfoJSON == null) {
+          console.log("BOOKINFO NOT VALID");
+          fname.value = "";
+        } else {
+
+        var totalItems = bookInfoJSON.totalItems;
+        var firstVolume = bookInfoJSON.items[0].volumeInfo;
+        console.log("Title=" + firstVolume.title); 
+        console.log("Publisher=" + firstVolume.publisher); 
+        console.log("Date=" + firstVolume.publishedDate); 
+        console.log("Thumbnail=" + firstVolume.imageLinks.smallThumbnail); 
+
+/*
+        <div class="col-auto mb-3">
+          <div class="card" style="width: 10rem; height: 20rem";>
+            <img class="card-img-top" src="https://foo-bar.jpg" alt="Card image" style="width:100%">
+            <div class="card-body">
+              <h6 class="card-title" style="text-align: center">Gant Laborde</h6>
+              <p class="card-text" style="text-align: center">May 2021 <br> O'Reilly Media</p>
+            </div>
+          </div>
+        </div>
+*/
+
+        // output the book details
+
+        resultString = "";
+        /*
+        resultString = resultString + '<img src=' + firstVolume.imageLinks.smallThumbnail + 'width=100 height=100>';
+        resultString = resultString + "<br>TITLE: " + firstVolume.title + "";
+        resultString = resultString + "<br>AUTHOR: " + firstVolume.authors[0] + "";
+        resultString = resultString + "<br>DATE: " + firstVolume.publishedDate + "";
+        */
+        resultString = resultString + '<div class="col-auto mb-3">';
+        resultString = resultString + '<div class="card" style="width: 10rem; height: 20rem";>';
+        resultString = resultString + '<img class="card-img-top" src="' + firstVolume.imageLinks.smallThumbnail + '" alt="Card Image" style="width:100">';
+        resultString = resultString + '<div class="card-body">';
+        resultString = resultString + '<h6 class="card-title" style="text-align: center">Gant Laborde</h6>';
+        resultString = resultString + '<p class="card-text" style="text-align: center">May 2021 <br> OReilly Media</p>';
+        resultString = resultString + '</div></div></div>';
+        
+        header.innerHTML = resultString;
+        }
+      }
+
+
+
+      function showBookResults(dataBack, isbn) {
+        var resultString = "";
+        var bookInfo = JSON.parse(dataBack)[isbn];
+        var header = document.querySelector(".bills-lib");
+
+        if (bookInfo == null) {
+          console.log("NOT A VALID ISBN");
+          fname.value = "";
+        }
+        else {
+
+        var authorInfo = bookInfo["authors"][0];
+
+        // output the book details
+        resultString = "";
+        resultString = resultString + '<img src="https://covers.openlibrary.org/b/id/240726-S.jpg" width=100 height=100>';
+        resultString = resultString + "<br>TITLE: " + bookInfo["title"] + "";
+        resultString = resultString + "<br>SUBTITLE: " + bookInfo["subtitle"] + "";
+        resultString = resultString + "<br>AUTHOR: " + authorInfo["name"] + "";
+        
+        }
+        header.innerHTML = resultString;
+      }
+
+
+      submitButton.onclick = function() {
+          //  First indicate that we're waiting...
+          console.log("Received ISBN#" + fname.value + ".");
+          processISBNLookup(fname.value);
+          processWorldCatLookup("https://www.worldcat.org/title/beginning-react-js-foundations-building-user-interfaces-with-reactjs/");
+
+      }
+
+      titleSubmitButton.onclick = function() {
+          //  First indicate that we're waiting...
+          console.log("Received Title" + tname.value + ".");
+          processTitleLookup(tname.value);
+
+      }
+
+function displayCurrentBooks() {
+
+
+  fetch('https://www.googleapis.com/books/v1/users/107192763849585584524/bookshelves/3/volumes?key=AIzaSyBl-zrGJ1-fZQWYXiILGUv2hz0b8HTYVYU')
+      .then(response => response.text())
+      .then(data => { 
+                console.log("Bill's Current Books=" + data);
+                showCurrentBooks(data);
+            });
+}
+
+function displayLibraryBooks() {
+  fetch('https://www.googleapis.com/books/v1/users/107192763849585584524/bookshelves/4/volumes?key=AIzaSyBl-zrGJ1-fZQWYXiILGUv2hz0b8HTYVYU')
+    .then(response => response.text())
+    .then(data => { 
+              console.log("Bill's Current Books=" + data);
+              showCurrentBooks1(data);
+      });
+}
+
+
+
+// Displays an entire Google Bookshelf at the 'location' in the HTML doc
+// using userID and userKey that have to be supplied by the user
+function displayBookshelf(id, key, bookShelf, locTag) {
+  fetch('https://www.googleapis.com/books/v1/users/' + id + '/bookshelves/' + bookShelf + '/volumes?key=' + key)
+    .then(response => response.text())
+    .then(bookshelfData => { 
+              console.log("Bookshelf Data=" + bookshelfData);
+              displayBookCardsJSON(bookshelfData, locTag);
+      });
+}
+
+// Displays the JSON book data visuall at the locTag in the HTML page
+function displayBooksJSON(dataBack, locTag) {
+  var pageLoc = document.getElementById(locTag);
+  var bookInfoJSON = JSON.parse(dataBack);
+  var numBooks = bookInfoJSON.totalItems;
+
+  var buf = "<ul>";
+  for (i=0; i<numBooks; i++) {
+      buf += "<b>";
+      buf += "<img src=" + bookInfoJSON.items[i].volumeInfo.imageLinks.smallThumbnail + "width=64 height=64>";
+      buf += bookInfoJSON.items[i].volumeInfo.title + "</b> by" + bookInfoJSON.items[i].volumeInfo.authors[0] + "<br><br>";
+      console.log("BookData=" + buf);
+  }
+  pageLoc.innerHTML = buf + "</ul>";
+}
+
+// Displays the JSON book data visuall at the locTag in the HTML page
+function displayBookCardsJSON(dataBack, locTag) {
+  var pageLoc = document.getElementById(locTag);
+  var bookInfoJSON = JSON.parse(dataBack);
+  var numBooks = bookInfoJSON.totalItems;
+
+//  var buf = "<ul>";
+  var buf = '<div class="container-fluid mt-4"><div class="row">';
+  for (i=0; i<numBooks; i++) {
+ /*
+      buf += "<b>";
+      buf += "<img src=" + bookInfoJSON.items[i].volumeInfo.imageLinks.smallThumbnail + "width=64 height=64>";
+      buf += bookInfoJSON.items[i].volumeInfo.title + "</b> by" + bookInfoJSON.items[i].volumeInfo.authors[0] + "<br><br>";
+      console.log("BookData=" + buf);
+*/
+        
+        /*
+        resultString = resultString + '<img src=' + firstVolume.imageLinks.smallThumbnail + 'width=100 height=100>';
+        resultString = resultString + "<br>TITLE: " + firstVolume.title + "";
+        resultString = resultString + "<br>AUTHOR: " + firstVolume.authors[0] + "";
+        resultString = resultString + "<br>DATE: " + firstVolume.publishedDate + "";
+        */
+        buf = buf + '<div class="col-auto mb-3">';
+        buf = buf + '<div class="card">';
+        buf = buf + '<img class="card-img-top" style="width: 10rem; height: 14rem" src="' + bookInfoJSON.items[i].volumeInfo.imageLinks.smallThumbnail + '" alt="Card Image" style="width:100">';
+        buf = buf + '<div class="card-body style="width: 11rem; height: 10rem">';
+        buf = buf + '<h6 class="card-title" style="text-align: center">' + bookInfoJSON.items[i].volumeInfo.authors[0] + '</h6>';
+        buf = buf + '<p class="card-text" style="font-size: 0.75em; text-align: center">' + bookInfoJSON.items[i].volumeInfo.publisher + '<br>' + bookInfoJSON.items[i].volumeInfo.publishedDate + '</p>';
+        buf = buf + '</div></div></div>';
+  }
+  //pageLoc.innerHTML = buf + "</ul>";
+  pageLoc.innerHTML = buf + "</div></div>";
+  //console.log("HTML=" + pageLoc.innerHTML);
+
+
+}
+
+// MAIN PROGRAM
+const userID = '107192763849585584524';
+const userKey = 'AIzaSyBl-zrGJ1-fZQWYXiILGUv2hz0b8HTYVYU';
+displayBookshelf(userID, userKey, 3, 'reading_now'); //  Display Reading Now bookshelf
+displayBookshelf(userID, userKey, 2, 'to_read');  // Display Completed bookshelf
+displayBookshelf(userID, userKey, 4, 'completed');  // Display Completed bookshelf
+
+ 
+
+        </script>
+        
+                
+                
+
+    </main><!-- /.container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  
+  </body>
+</html>
